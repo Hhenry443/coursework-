@@ -7,4 +7,7 @@ add_executable(C_Coursework main.c
         List.c
         List.h
         Exoplanet.c
-        Exoplanet.h)
+        Exoplanet.h
+        TestExoplanet.c
+        TestExoplanet.h
+)

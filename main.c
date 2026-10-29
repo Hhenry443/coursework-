@@ -23,6 +23,11 @@ References  : [1] Dirk Schulze-Makuch, Abel Mendez, Alberto G. Fairen,
                   2011. doi:10.1089/ast.2010.0592 .
 
 History     : 14/10/2026 - v1.00 Initial prototype
+              29/10/2026 - v1.01 Initial bug fixes:
+                  1. Added a comma between arguments on exoplanet_setHabitability() call
+                  2. Changes list_end to list_begin as the order is decrementing
+                  3. changes the 057 from the ESI_r equation to be 0.57
+                  4. Added the sqrt operation to the return value of computeHabitability()
 
 ******************************************************************************/
 
@@ -33,6 +38,7 @@ History     : 14/10/2026 - v1.00 Initial prototype
 
 #include "Exoplanet.h"
 #include "List.h"
+#include "TestExoplanet.h"
 
 #define EARTH_MASS            (5.972E+24)   // mass of the Earth in kg
 #define EARTH_RADIUS          (6.371E+6)    // radius of the Earth in m
@@ -47,10 +53,15 @@ void describePlanet(const Exoplanet* planet, FILE *fd);
 
 int main(void)
 {
+   // Unit test the exoplanet
+   if (!testExoplanet()) {
+      printf("Unit test failed.");
+      exit(1);
+   }
+
    // load list of exoplanets from file
 
    FILE *fd = fopen("exoplanets.txt", "r");
-
 
    List *planets = list_load(fd);
 
@@ -69,15 +80,15 @@ int main(void)
    }
 
 
-   // sort exoplanets according to habitability
-
-
+   // sort exoplanets in descending order of habitability. So we have the most habitable as the first element
    list_sort(planets, exoplanet_descendingByHabitability);
-
 
    // display most habitable exoplanet
 
-   Iterator mostHabitable = list_end(planets);
+   // If in descending order, then the value at the end of the list would be the least habitable.
+   // Changed list_end to list_begin
+   // This also makes sense in the context of the top 20 being gotten from the start in that portion of the code!
+   Iterator mostHabitable = list_begin(planets);
 
    printf("\nThe most habitable known exoplanet is:\n\n");
 
@@ -140,8 +151,6 @@ double BCSI(double x, double x0, double w)
 
 double computeHabitability(const Exoplanet *planet)
 {
-   describePlanet(planet, stdout);
-
    double r  = exoplanet_getRadius(planet)*EARTH_RADIUS;
    double m  = exoplanet_getMass(planet)*EARTH_MASS;
    int    Ts = exoplanet_getTemperature(planet);
@@ -156,7 +165,7 @@ double computeHabitability(const Exoplanet *planet)
 
    // compute Earth Similarity Index
 
-   double ESI_r   = BCSI(r*1e-3, EARTH_RADIUS*1e-3, 057);   // computed in km
+   double ESI_r   = BCSI(r*1e-3, EARTH_RADIUS*1e-3, 0.57);   // computed in km
    double ESI_rho = BCSI(rho,    EARTH_DENSITY, 1.07);
    double ESI_ve  = BCSI(ve,     1, 0.70);                   // in Earth units
    double ESI_Ts  = BCSI(Ts,     EARTH_TEMPERATURE, 5.58);
@@ -164,7 +173,8 @@ double computeHabitability(const Exoplanet *planet)
    double ESI_I = sqrt(ESI_r*ESI_rho);
    double ESI_S = sqrt(ESI_ve*ESI_Ts);
 
-   return ESI_I*ESI_S;
+   // printf("%f\n", ESI_I*ESI_S);
+   return sqrt(ESI_I*ESI_S); // Need to sqrt the end result!
 }
 
 /******************************************************************************

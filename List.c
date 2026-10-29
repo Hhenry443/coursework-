@@ -10,6 +10,10 @@ Description : Implementation of a basic singly-linked list of pointers to
               Exoplanet structures.
 
 History     : 14/10/2026 - v1.00 Initial prototype
+              29/10/2026 - v1.01 Bug Fixes
+                  1. Changed the "sorted" flag to "swapped" for a better representation of its function in list_sort
+                  2. Changed the while condition of the same function to be while (swapped), as we want to break if we
+                     don't perform a swap
 
 ******************************************************************************/
 
@@ -111,11 +115,13 @@ void list_sort(List *list, Comparator compare)
       return;
    }
 
-   bool sorted;
+   // This sorting algorithm goes until it hasnt swapped any values.
+   // The word "sorted" was misleading, changed to swapped
+   bool swapped;
 
    do
    {
-      sorted = false;
+      swapped = false;
 
       for (Link *link = list->first; link->next != NULL; link=link->next)
       {
@@ -125,11 +131,11 @@ void list_sort(List *list, Comparator compare)
             link->planet       = link->next->planet;
             link->next->planet = planet;
 
-            sorted = true;
+            swapped = true;
          }
       }
    }
-   while (!sorted);
+   while (swapped); // Condition was flipped. It would only do one iteration if it made a swap
 }
 
 Iterator list_begin(const List *list)
@@ -139,14 +145,7 @@ Iterator list_begin(const List *list)
 
 Iterator list_end(const List *list)
 {
-   // We get the list, we need to get the last one?
-   Iterator current = list_begin(list);
-
-   while (current->next != NULL) {
-      current = iterator_next(current);
-   }
-
-   return current;
+   return NULL;
 }
 
 Iterator iterator_next(const Iterator iterator)
